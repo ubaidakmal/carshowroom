@@ -1,1 +1,1 @@
-// Export domain / DTO models here as you add them.
+export 'car_model.dart';

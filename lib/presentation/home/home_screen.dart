@@ -3,35 +3,96 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../data/models/car_model.dart';
+import '../car_detail/car_detail_screen.dart';
+import 'home_view_model.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late final HomeViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = HomeViewModel();
+    _viewModel.addListener(_onChanged);
+  }
+
+  void _onChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _viewModel.removeListener(_onChanged);
+    _viewModel.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 12),
-              _buildTopBar(),
-              const SizedBox(height: 24),
-              _buildHeadline(),
-              const SizedBox(height: 20),
-              _buildSearchBar(),
-              const SizedBox(height: 24),
-              _buildTrendingBrandsHeader(),
-              const SizedBox(height: 12),
-              _buildBrandChips(),
-              const SizedBox(height: 20),
-              _buildCarCard(),
-              const SizedBox(height: 20),
-            ],
-          ),
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  const SizedBox(height: 12),
+                  _buildTopBar(),
+                  const SizedBox(height: 24),
+                  _buildHeadline(),
+                  const SizedBox(height: 20),
+                  _buildSearchBar(),
+                  const SizedBox(height: 24),
+                  _buildTrendingBrandsHeader(),
+                  const SizedBox(height: 12),
+                  _buildBrandChips(),
+                  const SizedBox(height: 20),
+                ]),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              sliver: SliverList.builder(
+                itemCount: _viewModel.cars.length,
+                itemBuilder: (context, index) {
+                  final car = _viewModel.cars[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          PageRouteBuilder<void>(
+                            transitionDuration: const Duration(milliseconds: 500),
+                            reverseTransitionDuration: const Duration(milliseconds: 400),
+                            pageBuilder: (context, animation, secondaryAnimation) =>
+                                CarDetailScreen(car: car),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              return FadeTransition(opacity: animation, child: child);
+                            },
+                          ),
+                        );
+                      },
+                      child: _CarCard(
+                        car: car,
+                        onFavoriteTap: () => _viewModel.toggleFavorite(index),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 20)),
+          ],
         ),
       ),
     );
@@ -133,7 +194,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildBrandChips() {
-    final brands = ['BMW', 'Mercedes', 'Nissan'];
+    final brands = _viewModel.brands;
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -166,8 +227,27 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildCarCard() {
+class _CarCard extends StatelessWidget {
+  const _CarCard({required this.car, required this.onFavoriteTap});
+
+  final CarModel car;
+  final VoidCallback onFavoriteTap;
+
+  String _formatPrice(double price) {
+    final intPrice = price.toInt();
+    final buffer = StringBuffer('\$');
+    final str = intPrice.toString();
+    for (var i = 0; i < str.length; i++) {
+      if (i > 0 && (str.length - i) % 3 == 0) buffer.write(',');
+      buffer.write(str[i]);
+    }
+    return buffer.toString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.grey50,
@@ -178,51 +258,62 @@ class HomeScreen extends StatelessWidget {
         children: [
           Stack(
             children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                child: Image.asset(
-                  AppAssets.onboardImage1,
-                  width: double.infinity,
-                  height: 180,
-                  fit: BoxFit.cover,
-                  errorBuilder: (c, e, s) => Container(
+              Hero(
+                tag: 'car-image-${car.imagePath}',
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  child: Image.asset(
+                    car.imagePath,
                     width: double.infinity,
                     height: 180,
-                    color: AppColors.grey100,
-                    child: const Icon(Icons.directions_car, size: 60, color: AppColors.grey400),
+                    fit: BoxFit.cover,
+                    errorBuilder: (c, e, s) => Container(
+                      width: double.infinity,
+                      height: 180,
+                      color: AppColors.grey100,
+                      child: const Icon(Icons.directions_car, size: 60, color: AppColors.grey400),
+                    ),
                   ),
                 ),
               ),
-              Positioned(
-                top: 12,
-                left: 12,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(20),
+              if (car.tag != null)
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(car.tag!, style: AppTextStyles.bodyMedium),
                   ),
-                  child: Text('Sale', style: AppTextStyles.bodyMedium),
                 ),
-              ),
               Positioned(
                 top: 12,
                 right: 12,
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.secondary.withValues(alpha: 0.08),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                child: GestureDetector(
+                  onTap: onFavoriteTap,
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.secondary.withValues(alpha: 0.08),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      car.isFavorite ? Icons.favorite : Icons.favorite_border_rounded,
+                      color: car.isFavorite ? AppColors.red : AppColors.grey400,
+                      size: 20,
+                    ),
                   ),
-                  child: const Icon(Icons.favorite, color: AppColors.red, size: 20),
                 ),
               ),
             ],
@@ -236,13 +327,13 @@ class HomeScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('BMW Luxury Drive', style: AppTextStyles.sectionTitle.copyWith(fontSize: 16)),
+                      Text(car.name, style: AppTextStyles.sectionTitle.copyWith(fontSize: 16)),
                       const SizedBox(height: 4),
                       Row(
                         children: [
                           const Icon(Icons.location_on_outlined, size: 14, color: AppColors.grey600),
                           const SizedBox(width: 4),
-                          Text('BMW Luxury Drive', style: AppTextStyles.bodySmall),
+                          Flexible(child: Text(car.location, style: AppTextStyles.bodySmall, overflow: TextOverflow.ellipsis)),
                         ],
                       ),
                     ],
@@ -253,7 +344,7 @@ class HomeScreen extends StatelessWidget {
                   children: [
                     Text('Price', style: AppTextStyles.labelSmall),
                     const SizedBox(height: 2),
-                    Text('\$30,980', style: AppTextStyles.priceText),
+                    Text(_formatPrice(car.price), style: AppTextStyles.priceText),
                   ],
                 ),
               ],
