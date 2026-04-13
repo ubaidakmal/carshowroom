@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:car_showroom_app/core/constants/app_assets.dart';
 import 'package:car_showroom_app/core/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
@@ -27,8 +25,8 @@ class RootPlaceholderScreen extends StatelessWidget {
                 margin: EdgeInsets.symmetric(horizontal: 30),
                 padding: EdgeInsets.symmetric(vertical: 5,horizontal: 16),
                 decoration: BoxDecoration(
-                  color: AppColors.secondary.withOpacity(.13),
-                  borderRadius: BorderRadius.circular(50)
+                  color: AppColors.secondary.withValues(alpha: 0.13),
+                  borderRadius: BorderRadius.circular(50),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -37,8 +35,8 @@ class RootPlaceholderScreen extends StatelessWidget {
                       margin: EdgeInsets.symmetric(vertical: 5, horizontal: 0),
                       padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                       decoration: BoxDecoration(
-                        color: AppColors.secondary.withOpacity(.2),
-                        borderRadius: BorderRadius.circular(30)
+                        color: AppColors.secondary.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(30),
                       ),
                       child: Image.asset(AppAssets.steering, width: 30,height: 30,),
                     ),
