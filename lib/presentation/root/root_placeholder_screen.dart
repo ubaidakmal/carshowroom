@@ -5,6 +5,7 @@ import 'package:car_showroom_app/core/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../main_shell/main_shell.dart';
 
 class RootPlaceholderScreen extends StatefulWidget {
   const RootPlaceholderScreen({super.key});
@@ -135,35 +136,44 @@ class _RootPlaceholderScreenState extends State<RootPlaceholderScreen>
     );
   }
 
+  void _navigateToHome() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(builder: (_) => const MainShell()),
+    );
+  }
+
   Widget _buildCtaBar() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 30),
-      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
-      decoration: BoxDecoration(
-        color: AppColors.secondary.withValues(alpha: 0.13),
-        borderRadius: BorderRadius.circular(50),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: 5),
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.secondary.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(30),
+    return GestureDetector(
+      onTap: _navigateToHome,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 30),
+        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
+        decoration: BoxDecoration(
+          color: AppColors.secondary.withValues(alpha: 0.13),
+          borderRadius: BorderRadius.circular(50),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 5),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.secondary.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Image.asset(AppAssets.steering, width: 30, height: 30),
             ),
-            child: Image.asset(AppAssets.steering, width: 30, height: 30),
-          ),
-          Text(
-            'Get Started',
-            style: AppTextStyles.splashSubtitle.copyWith(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
+            Text(
+              'Get Started',
+              style: AppTextStyles.splashSubtitle.copyWith(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-          Image.asset(AppAssets.arrow, width: 30, height: 30),
-        ],
+            Image.asset(AppAssets.arrow, width: 30, height: 30),
+          ],
+        ),
       ),
     );
   }

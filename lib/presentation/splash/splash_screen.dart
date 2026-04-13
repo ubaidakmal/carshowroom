@@ -3,8 +3,6 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_text_styles.dart';
-import '../../core/widgets/widgets.dart';
 import '../root/root_placeholder_screen.dart';
 import 'splash_view_model.dart';
 
