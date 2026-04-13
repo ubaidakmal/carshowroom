@@ -20,4 +20,7 @@ abstract final class AppAssets {
   static const String car2 = '$_images/car2.png';
   static const String car3 = '$_images/car3.png';
   static const String car4 = '$_images/car4.png';
+
+  static const String bmwModel3D = '$_images/bmw.glb';
+  static const String bmwModel3D2 = '$_images/bmw4.glb';
 }

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../data/models/car_model.dart';
+import '../car_360_view/car_360_view_screen.dart';
 import 'car_detail_view_model.dart';
 
 class CarDetailScreen extends StatefulWidget {
@@ -193,7 +194,19 @@ class _CarDetailScreenState extends State<CarDetailScreen>
 
   Widget _build360Button() {
     return GestureDetector(
-      onTap: () {},
+      onTap: () {
+        Navigator.of(context).push(
+          PageRouteBuilder<void>(
+            transitionDuration: const Duration(milliseconds: 600),
+            reverseTransitionDuration: const Duration(milliseconds: 400),
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                Car360ViewScreen(car: _viewModel.car),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+          ),
+        );
+      },
       child: ClipRRect(
         borderRadius: BorderRadius.circular(30),
         child: BackdropFilter(
