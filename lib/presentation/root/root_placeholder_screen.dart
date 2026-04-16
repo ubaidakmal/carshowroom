@@ -102,7 +102,7 @@ class _RootPlaceholderScreenState extends State<RootPlaceholderScreen>
           Center(
             child: SlideTransition(
               position: _carSlide,
-              child: Image.asset(AppAssets.onboardImage3, height: 700),
+              child: Image.asset(AppAssets.onboardImage3, height: 620),
             ),
           ),
 

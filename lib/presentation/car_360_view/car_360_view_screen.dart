@@ -95,6 +95,7 @@ class _Car360ViewScreenState extends State<Car360ViewScreen>
 
   Widget _build3DViewer() {
     return AnimatedBuilder(
+
       animation: _entryController,
       builder: (context, child) {
         return Opacity(
@@ -102,11 +103,11 @@ class _Car360ViewScreenState extends State<Car360ViewScreen>
           child: Transform.scale(
             scale: _entryScale.value,
             child: child,
-          ),
+           ),
         );
       },
       child: ModelViewer(
-        src: AppAssets.bmwModel3D2,
+        src: AppAssets.bmwModel3D,
         alt: '3D model of ${widget.car.name}',
         autoRotate: true,
         autoRotateDelay: 0,
