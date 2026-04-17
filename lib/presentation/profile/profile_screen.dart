@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_assets.dart';
+import '../../core/constants/app_user.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../data/services/booking_local_storage.dart';
+import 'about_screen.dart';
+import 'browsing_history_screen.dart';
+import 'edit_profile_screen.dart';
+import 'help_support_screen.dart';
+import 'my_addresses_screen.dart';
+import 'my_bookings_screen.dart';
+import 'notification_settings_screen.dart';
+import 'payment_methods_screen.dart';
+import 'privacy_security_screen.dart';
+import 'reviews_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -13,20 +25,34 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
+  int _bookingCount = 0;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 700),
-    )..forward();
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 700))..forward();
+    BookingLocalStorage.instance.addListener(_onBookingsChanged);
+    _loadBookingCount();
+  }
+
+  void _onBookingsChanged() {
+    _loadBookingCount();
+  }
+
+  Future<void> _loadBookingCount() async {
+    final n = await BookingLocalStorage.instance.count();
+    if (mounted) setState(() => _bookingCount = n);
   }
 
   @override
   void dispose() {
+    BookingLocalStorage.instance.removeListener(_onBookingsChanged);
     _controller.dispose();
     super.dispose();
+  }
+
+  void _push(Widget page) {
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page));
   }
 
   @override
@@ -42,10 +68,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               final value = CurvedAnimation(parent: _controller, curve: Curves.easeOut).value;
               return Opacity(
                 opacity: value,
-                child: Transform.translate(
-                  offset: Offset(0, 20 * (1 - value)),
-                  child: child,
-                ),
+                child: Transform.translate(offset: Offset(0, 20 * (1 - value)), child: child),
               );
             },
             child: Column(
@@ -56,22 +79,22 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 _buildStatsRow(),
                 const SizedBox(height: 30),
                 _buildSection('Account', [
-                  _MenuItem(Icons.person_outline_rounded, 'Edit Profile'),
-                  _MenuItem(Icons.location_on_outlined, 'My Addresses'),
-                  _MenuItem(Icons.credit_card_rounded, 'Payment Methods'),
+                  _NavItem(Icons.person_outline_rounded, 'Edit Profile', () => _push(const EditProfileScreen())),
+                  _NavItem(Icons.location_on_outlined, 'My Addresses', () => _push(const MyAddressesScreen())),
+                  _NavItem(Icons.credit_card_rounded, 'Payment Methods', () => _push(const PaymentMethodsScreen())),
                 ]),
                 const SizedBox(height: 20),
                 _buildSection('Activity', [
-                  _MenuItem(Icons.receipt_long_rounded, 'My Bookings'),
-                  _MenuItem(Icons.history_rounded, 'Browsing History'),
-                  _MenuItem(Icons.star_outline_rounded, 'Reviews'),
+                  _NavItem(Icons.receipt_long_rounded, 'My Bookings', () => _push(const MyBookingsScreen())),
+                  _NavItem(Icons.history_rounded, 'Browsing History', () => _push(const BrowsingHistoryScreen())),
+                  _NavItem(Icons.star_outline_rounded, 'Reviews', () => _push(const ReviewsScreen())),
                 ]),
                 const SizedBox(height: 20),
                 _buildSection('Preferences', [
-                  _MenuItem(Icons.notifications_outlined, 'Notifications'),
-                  _MenuItem(Icons.shield_outlined, 'Privacy & Security'),
-                  _MenuItem(Icons.help_outline_rounded, 'Help & Support'),
-                  _MenuItem(Icons.info_outline_rounded, 'About'),
+                  _NavItem(Icons.notifications_outlined, 'Notifications', () => _push(const NotificationSettingsScreen())),
+                  _NavItem(Icons.shield_outlined, 'Privacy & Security', () => _push(const PrivacySecurityScreen())),
+                  _NavItem(Icons.help_outline_rounded, 'Help & Support', () => _push(const HelpSupportScreen())),
+                  _NavItem(Icons.info_outline_rounded, 'About', () => _push(const AboutScreen())),
                 ]),
                 const SizedBox(height: 24),
                 _buildLogout(),
@@ -97,9 +120,11 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           ),
         ),
         const SizedBox(height: 14),
-        Text('John Anderson', style: AppTextStyles.sectionTitle.copyWith(fontSize: 20)),
+        Text(AppUser.name, style: AppTextStyles.sectionTitle.copyWith(fontSize: 20)),
         const SizedBox(height: 4),
-        Text('john.anderson@email.com', style: AppTextStyles.bodySmall),
+        Text(AppUser.email, style: AppTextStyles.bodySmall),
+        const SizedBox(height: 2),
+        Text(AppUser.phone, style: AppTextStyles.labelSmall.copyWith(color: AppColors.grey600)),
       ],
     );
   }
@@ -107,7 +132,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   Widget _buildStatsRow() {
     return Row(
       children: [
-        _buildStatItem('12', 'Bookings'),
+        _buildStatItem('$_bookingCount', 'Bookings'),
         _buildStatDivider(),
         _buildStatItem('5', 'Favorites'),
         _buildStatDivider(),
@@ -132,7 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     return Container(width: 1, height: 36, color: AppColors.grey200);
   }
 
-  Widget _buildSection(String title, List<_MenuItem> items) {
+  Widget _buildSection(String title, List<_NavItem> items) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -148,23 +173,33 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               final item = items[i];
               return Column(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: AppColors.secondary.withValues(alpha: 0.06),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(item.icon, size: 18, color: AppColors.secondary),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.vertical(
+                        top: i == 0 ? const Radius.circular(16) : Radius.zero,
+                        bottom: i == items.length - 1 ? const Radius.circular(16) : Radius.zero,
+                      ),
+                      onTap: item.onTap,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: AppColors.secondary.withValues(alpha: 0.06),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(item.icon, size: 18, color: AppColors.secondary),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(child: Text(item.label, style: AppTextStyles.bodyMedium)),
+                            const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.grey400),
+                          ],
                         ),
-                        const SizedBox(width: 14),
-                        Expanded(child: Text(item.label, style: AppTextStyles.bodyMedium)),
-                        const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.grey400),
-                      ],
+                      ),
                     ),
                   ),
                   if (i < items.length - 1)
@@ -196,8 +231,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   }
 }
 
-class _MenuItem {
-  const _MenuItem(this.icon, this.label);
+class _NavItem {
+  const _NavItem(this.icon, this.label, this.onTap);
   final IconData icon;
   final String label;
+  final VoidCallback onTap;
 }

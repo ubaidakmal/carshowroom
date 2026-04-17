@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../core/constants/app_user.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../data/models/car_model.dart';
+import '../../data/models/saved_booking.dart';
+import '../../data/services/booking_local_storage.dart';
 
 class BookingScreen extends StatefulWidget {
   const BookingScreen({super.key, required this.car});
@@ -15,6 +18,10 @@ class BookingScreen extends StatefulWidget {
 
 class _BookingScreenState extends State<BookingScreen> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
+  late final TextEditingController _nameController;
+  late final TextEditingController _phoneController;
+  late final TextEditingController _emailController;
+
   int _selectedDateIndex = 1;
   int _selectedTimeIndex = 2;
   int _bookingType = 0;
@@ -35,6 +42,9 @@ class _BookingScreenState extends State<BookingScreen> with SingleTickerProvider
   @override
   void initState() {
     super.initState();
+    _nameController = TextEditingController(text: AppUser.name);
+    _phoneController = TextEditingController(text: AppUser.phone);
+    _emailController = TextEditingController(text: AppUser.email);
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -43,6 +53,9 @@ class _BookingScreenState extends State<BookingScreen> with SingleTickerProvider
 
   @override
   void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -283,16 +296,16 @@ class _BookingScreenState extends State<BookingScreen> with SingleTickerProvider
       children: [
         Text('Contact Information', style: AppTextStyles.sectionTitle),
         const SizedBox(height: 14),
-        _buildTextField('Full Name', Icons.person_outline_rounded),
+        _buildTextField('Full Name', Icons.person_outline_rounded, _nameController),
         const SizedBox(height: 12),
-        _buildTextField('Phone Number', Icons.phone_outlined),
+        _buildTextField('Phone Number', Icons.phone_outlined, _phoneController, keyboard: TextInputType.phone),
         const SizedBox(height: 12),
-        _buildTextField('Email Address', Icons.email_outlined),
+        _buildTextField('Email Address', Icons.email_outlined, _emailController, keyboard: TextInputType.emailAddress),
       ],
     );
   }
 
-  Widget _buildTextField(String hint, IconData icon) {
+  Widget _buildTextField(String hint, IconData icon, TextEditingController controller, {TextInputType keyboard = TextInputType.text}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -300,6 +313,8 @@ class _BookingScreenState extends State<BookingScreen> with SingleTickerProvider
         borderRadius: BorderRadius.circular(14),
       ),
       child: TextField(
+        controller: controller,
+        keyboardType: keyboard,
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey400),
@@ -340,15 +355,32 @@ class _BookingScreenState extends State<BookingScreen> with SingleTickerProvider
     );
   }
 
-  void _showConfirmation() {
+  Future<void> _showConfirmation() async {
+    final dateLabel = '${_dates[_selectedDateIndex]['day']}, ${_dates[_selectedDateIndex]['date']} Apr';
+    final time = _times[_selectedTimeIndex];
+    final type = _bookingTypes[_bookingType];
+
+    final booking = SavedBooking(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      carName: widget.car.name,
+      carImagePath: widget.car.imagePath,
+      carPrice: widget.car.price,
+      bookingType: type,
+      dateLabel: dateLabel,
+      time: time,
+      createdAtMs: DateTime.now().millisecondsSinceEpoch,
+    );
+    await BookingLocalStorage.instance.addBooking(booking);
+    if (!mounted) return;
+
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => _BookingConfirmation(
         car: widget.car,
-        type: _bookingTypes[_bookingType],
-        date: '${_dates[_selectedDateIndex]['day']}, ${_dates[_selectedDateIndex]['date']} Apr',
-        time: _times[_selectedTimeIndex],
+        type: type,
+        date: dateLabel,
+        time: time,
       ),
     );
   }
