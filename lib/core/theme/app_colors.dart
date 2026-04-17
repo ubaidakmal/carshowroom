@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// App palette: **white** = primary, **black** = secondary (light theme).
 abstract final class AppColors {
   AppColors._();
 
@@ -19,4 +18,6 @@ abstract final class AppColors {
 
   static const Color red = Color(0xFFE53935);
   static const Color saleBadge = Color(0xFFF5F5F5);
+  static const Color green = Color(0xFF2E7D32);
+  static const Color blue = Color(0xFF1565C0);
 }

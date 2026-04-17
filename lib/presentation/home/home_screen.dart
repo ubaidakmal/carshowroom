@@ -5,6 +5,8 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../data/models/car_model.dart';
 import '../car_detail/car_detail_screen.dart';
+import '../notifications/notifications_screen.dart';
+import '../search/search_screen.dart';
 import 'home_view_model.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -129,14 +131,19 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         const Spacer(),
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.grey200, width: 1.5),
+        GestureDetector(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => const NotificationsScreen()),
           ),
-          child: const Icon(Icons.notifications_outlined, size: 22, color: AppColors.secondary),
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.grey200, width: 1.5),
+            ),
+            child: const Icon(Icons.notifications_outlined, size: 22, color: AppColors.secondary),
+          ),
         ),
       ],
     );
@@ -153,19 +160,31 @@ class _HomeScreenState extends State<HomeScreen> {
     return Row(
       children: [
         Expanded(
-          child: Container(
-            height: 50,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: AppColors.grey50,
-              borderRadius: BorderRadius.circular(14),
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).push(
+              PageRouteBuilder<void>(
+                transitionDuration: const Duration(milliseconds: 350),
+                reverseTransitionDuration: const Duration(milliseconds: 300),
+                pageBuilder: (context, animation, secondaryAnimation) => const SearchScreen(),
+                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+              ),
             ),
-            child: Row(
-              children: [
-                const Icon(Icons.search_rounded, color: AppColors.grey400, size: 22),
-                const SizedBox(width: 10),
-                Text('Search Leads', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey400)),
-              ],
+            child: Container(
+              height: 50,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: AppColors.grey50,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.search_rounded, color: AppColors.grey400, size: 22),
+                  const SizedBox(width: 10),
+                  Text('Search Leads', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey400)),
+                ],
+              ),
             ),
           ),
         ),

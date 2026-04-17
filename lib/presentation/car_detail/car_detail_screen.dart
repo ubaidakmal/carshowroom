@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../data/models/car_model.dart';
+import '../booking/booking_screen.dart';
 import '../car_360_view/car_360_view_screen.dart';
 import 'car_detail_view_model.dart';
 
@@ -436,7 +437,9 @@ class _CarDetailScreenState extends State<CarDetailScreen>
           const SizedBox(width: 20),
           Expanded(
             child: GestureDetector(
-              onTap: () {},
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => BookingScreen(car: car)),
+              ),
               child: Container(
                 height: 54,
                 decoration: BoxDecoration(
